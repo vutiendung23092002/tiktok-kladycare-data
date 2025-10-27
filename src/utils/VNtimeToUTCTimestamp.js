@@ -4,10 +4,8 @@
  */
 export function vnTimeToUTCTimestampRaw(datetimeStr) {
   const normalized = datetimeStr.replace(/\//g, "-");
-  const dateVN = new Date(normalized); // local time (VN)
-  // Chuyển sang UTC bằng cách trừ offset 7h
-  const utcMillis = dateVN.getTime() - 7 * 60 * 60 * 1000;
-  return Math.floor(utcMillis / 1000);
+  const dateVN = new Date(normalized);
+  return Math.floor(dateVN.getTime() / 1000);
 }
 
 /**

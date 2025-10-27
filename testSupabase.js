@@ -1,27 +1,36 @@
 import fs from "fs/promises";
+
 import { getListOrder } from "./src/api/tiktok.order.js";
 import { getOrderDetail } from "./src/api/tiktok.order_detail.js";
+
+import { ensureOrderTable } from "./src/services/supabase.ensureOrderTable.js";
+import { ensureOrderItemTable } from "./src/services/supabase.ensureOrderItemTable.js";
+import { insertOrders } from "./src/services/supabase.insertOrders.js";
+import { insertOrderItems } from "./src/services/supabase.insertOrderItems.js"
+
+import { formatTikTokOrder, formatTikTokOrderItem } from "./src/utils/formatTikTokOrder.js";
 import { logTokenStatus } from "./src/utils/tokenExpiration.js";
-import { formatTikTokOrder } from "./src/utils/formatTikTokOrder.js";
 
 (async () => {
   logTokenStatus();
+
+  console.log("Bắt đầu sync TikTok → Supabase...");
+
+  await ensureOrderTable();
+  await ensureOrderItemTable();
 
   let allOrdersDetail = [];
   let nextPageToken = null;
   let page = 1;
 
   do {
-    console.log(`Đang lấy trang ${page} từ /order/search...`);
+    console.log(`Đang lấy trang ${page}...`);
     const res = await getListOrder(nextPageToken);
-
     // Nếu lỗi hoặc không có data thì dừng
     if (!res || !res.orders) {
       console.log("Không có dữ liệu trả về hoặc token sai, dừng lại.");
       break;
     }
-
-    // Lấy danh sách ID
     const ids = res.orders.map((o) => o.id).filter(Boolean);
 
     // Chia nhỏ danh sách ID thành 2 batch (mỗi batch 50 đơn)
@@ -32,9 +41,7 @@ import { formatTikTokOrder } from "./src/utils/formatTikTokOrder.js";
       const orderDetails = await getOrderDetail(batchIds);
 
       if (Array.isArray(orderDetails) && orderDetails.length > 0) {
-        // Format từng order theo chuẩn
-        const formattedOrders = orderDetails.map((o) => formatTikTokOrder(o));
-        allOrdersDetail.push(...formattedOrders);
+        allOrdersDetail.push(...orderDetails);
       } else {
         console.log("Không đơn hàng nào trả về cho batch này");
       }
@@ -43,19 +50,31 @@ import { formatTikTokOrder } from "./src/utils/formatTikTokOrder.js";
       await new Promise((r) => setTimeout(r, 100));
     }
 
-    // Chuyển sang trang tiếp theo
     nextPageToken = res.next_page_token;
     page++;
+    await new Promise((r) => setTimeout(r, 200));
   } while (nextPageToken);
 
-  console.log(`Hoàn tất! Tổng cộng ${allOrdersDetail.length} đơn hàng chi tiết đã format.`);
+  console.log(`Tổng cộng ${allOrdersDetail.length} đơn hàng`);
+
+  const formattedOrder = allOrdersDetail.map(formatTikTokOrder);
+  const formattedOrderItems = allOrdersDetail.flatMap(formatTikTokOrderItem).filter(Boolean);
+
+  await insertOrders(formattedOrder);
+  await insertOrderItems(formattedOrderItems);
 
   // Lưu JSON kết quả
   await fs.writeFile(
-    "./src/data/all_order_details_formatted.json",
-    JSON.stringify(allOrdersDetail, null, 2),
+    "./src/data/order_item.json",
+    JSON.stringify(formattedOrderItems, null, 2),
     "utf-8"
   );
 
-  console.log("Đã lưu file all_order_details_formatted.json!");
+  await fs.writeFile(
+    "./src/data/all_order_details.json",
+    JSON.stringify(formattedOrder, null, 2),
+    "utf-8"
+  );
+
+  console.log("Đã lưu all_orders.json và đẩy lên Supabase!");
 })();
