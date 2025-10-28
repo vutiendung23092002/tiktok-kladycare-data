@@ -8,6 +8,12 @@ export async function insertOrders(orders) {
 
   const formatted = orders.map((o) => ({
     ...o,
+    cancel_order_sla_time: o.cancel_order_sla_time?.toString() || "",
+    create_time: o.create_time?.toString() || "",
+    paid_time: o.paid_time?.toString() || "",
+    cancel_time: o.cancel_time?.toString() || "",
+    delivery_due_time: o.delivery_due_time?.toString() || "",
+    delivery_time: o.delivery_time?.toString() || "",
     packages: JSON.stringify(o.packages ?? []),
   }));
 

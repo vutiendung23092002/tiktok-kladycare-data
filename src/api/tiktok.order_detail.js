@@ -1,6 +1,7 @@
 import axios from "axios";
 import { config } from "../config/env.config.js";
 import { generateTikTokSignForGetAuthorizedShops } from "../utils/generateTikTokSign.js";
+import { writeSyncLog } from "../utils/writelog.js";
 
 export async function getOrderDetail(orderIds = []) {
     if (!orderIds.length) {
@@ -42,10 +43,10 @@ export async function getOrderDetail(orderIds = []) {
     } catch (err) {
         console.log("Lỗi khi gọi getOrderDetail:");
         if (err.response) {
-            console.log("Status:", err.response.status);
-            console.log("Data:", JSON.stringify(err.response.data, null, 2));
+            writeSyncLog("ERROR", `[TikTok.order_detail.js] Status: ${err.response.status}`)
+            writeSyncLog("ERROR", `[TikTok.order_detail.js] Data: ${JSON.stringify(err.response.data, null, 2)}`)
         } else {
-            console.log("Error:", err.message);
+            writeSyncLog("ERROR", `[TikTok.order_detail.js] Lỗi khi lấy chi tiết đơn hàng: ${err.message}`)
         }
     }
 }

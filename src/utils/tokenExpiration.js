@@ -26,7 +26,7 @@ export function getTokenRemainingTime(type = "access_token") {
     const remainingMinutes = (remainingSeconds / 60).toFixed(2);
     const remainingHours = (remainingSeconds / 3600).toFixed(2);
 
-    // 🕓 Convert timestamp -> ngày giờ Việt Nam (GMT+7)
+    // Convert timestamp -> ngày giờ Việt Nam (GMT+7)
     const expireDateVN = new Date(expireTime * 1000).toLocaleString("vi-VN", {
         timeZone: "Asia/Ho_Chi_Minh",
         hour12: false,
@@ -67,6 +67,6 @@ export function logTokenStatus() {
             writeSyncLog("ERROR","REFRESH_TOKEN tiktok đã hết hạn! Vui lòng truy cập https://seller-vn.tiktok.com/services/market đăng nhập và cấp quyền lại cho app");
         }
     } catch (err) {
-        console.error("❌ Lỗi kiểm tra token:", err.message);
+        console.error("Lỗi kiểm tra token:", err.message);
     }
 }

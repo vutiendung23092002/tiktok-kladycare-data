@@ -14,21 +14,22 @@ export function vnTimeToUTCTimestampRaw(datetimeStr) {
  * @returns {string} thời gian theo giờ Việt Nam
  */
 export function utcToVNTime(utcTimestamp) {
+  if (!utcTimestamp) return null;
+
   // Nhân 1000 vì JS Date nhận milliseconds
   const dateUTC = new Date(utcTimestamp * 1000);
 
-  // Cộng thêm 7 tiếng (VN = UTC+7)
+  // Tính thời gian Việt Nam = UTC + 7 tiếng (luôn tính tay, không phụ thuộc timezone local)
   const vnMillis = dateUTC.getTime() + 7 * 60 * 60 * 1000;
   const dateVN = new Date(vnMillis);
 
   // Format: YYYY/MM/DD HH:mm:ss
-  const yyyy = dateVN.getFullYear();
-  const mm = String(dateVN.getMonth() + 1).padStart(2, "0");
-  const dd = String(dateVN.getDate()).padStart(2, "0");
-  const hh = String(dateVN.getHours()).padStart(2, "0");
-  const mi = String(dateVN.getMinutes()).padStart(2, "0");
-  const ss = String(dateVN.getSeconds()).padStart(2, "0");
+  const yyyy = dateVN.getUTCFullYear();
+  const mm = String(dateVN.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(dateVN.getUTCDate()).padStart(2, "0");
+  const hh = String(dateVN.getUTCHours()).padStart(2, "0");
+  const mi = String(dateVN.getUTCMinutes()).padStart(2, "0");
+  const ss = String(dateVN.getUTCSeconds()).padStart(2, "0");
 
   return `${yyyy}/${mm}/${dd} ${hh}:${mi}:${ss}`;
 }
-

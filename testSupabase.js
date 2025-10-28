@@ -22,10 +22,12 @@ import { logTokenStatus } from "./src/utils/tokenExpiration.js";
   let allOrdersDetail = [];
   let nextPageToken = null;
   let page = 1;
+  let start = "2025/10/25 00:00:00"; // Giờ VN
+  let end = "2025/10/28 23:59:59"; // Giờ VN
 
   do {
     console.log(`Đang lấy trang ${page}...`);
-    const res = await getListOrder(nextPageToken);
+    const res = await getListOrder(nextPageToken, start, end);
     // Nếu lỗi hoặc không có data thì dừng
     if (!res || !res.orders) {
       console.log("Không có dữ liệu trả về hoặc token sai, dừng lại.");
@@ -33,7 +35,6 @@ import { logTokenStatus } from "./src/utils/tokenExpiration.js";
     }
     const ids = res.orders.map((o) => o.id).filter(Boolean);
 
-    // Chia nhỏ danh sách ID thành 2 batch (mỗi batch 50 đơn)
     const chunkSize = 50;
     for (let i = 0; i < ids.length; i += chunkSize) {
       const batchIds = ids.slice(i, i + chunkSize);
@@ -46,13 +47,11 @@ import { logTokenStatus } from "./src/utils/tokenExpiration.js";
         console.log("Không đơn hàng nào trả về cho batch này");
       }
 
-      // tránh rate limit
       await new Promise((r) => setTimeout(r, 100));
     }
 
     nextPageToken = res.next_page_token;
     page++;
-    await new Promise((r) => setTimeout(r, 200));
   } while (nextPageToken);
 
   console.log(`Tổng cộng ${allOrdersDetail.length} đơn hàng`);

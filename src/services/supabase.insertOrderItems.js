@@ -10,7 +10,7 @@ export async function insertOrderItems(items) {
   const formatted = items.map((item) => ({
     item_id: Number(item.item_id),
     order_id: Number(item.order_id),
-    create_time: item.create_time ? new Date(item.create_time) : null,
+    create_time: item.create_time?.toString() || "",
     product_name: item.product_name || "",
     seller_sku: item.seller_sku || "",
     is_gift: !!item.is_gift,
@@ -20,6 +20,7 @@ export async function insertOrderItems(items) {
     original_price: Number(item.original_price ?? 0),
     seller_discount: Number(item.seller_discount ?? 0),
     sale_price: Number(item.sale_price ?? 0),
+    hash: item.hash || "",
   }));
 
   // Chia nhỏ batch để tránh lỗi MAX_PARAMETERS_EXCEEDED

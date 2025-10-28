@@ -7,9 +7,9 @@ export async function ensureOrderTable() {
     await sql.unsafe(`
         CREATE TABLE IF NOT EXISTS orders (
           order_id NUMERIC PRIMARY KEY,
-          cancel_order_sla_time TIMESTAMP,
+          cancel_order_sla_time TEXT,
           cancellation_initiator TEXT,
-          create_time TIMESTAMP,
+          create_time TEXT,
           packages JSONB,
           sub_total NUMERIC,
           shipping_fee NUMERIC,
@@ -22,21 +22,22 @@ export async function ensureOrderTable() {
           handling_fee NUMERIC,
           status TEXT,
           fulfillment_type TEXT,
-          paid_time TIMESTAMP,
+          paid_time TEXT,
           cancel_reason TEXT,
-          cancel_time TIMESTAMP,
+          cancel_time TEXT,
           cpf TEXT,
-          delivery_due_time TIMESTAMP,
-          delivery_time TIMESTAMP,
-          commerce_platform TEXT
+          delivery_due_time TEXT,
+          delivery_time TEXT,
+          commerce_platform TEXT,
+          hash TEXT
         );
       `);
   } catch (err) {
-    console.error("Lỗi khi kiểm tra/tạo bảng 'orders':");
-    console.error("Message:", err.message);
+    writeSyncLog("ERROR", `[supabase.ensureOrderTable.js] Lỗi khi kiểm tra/tạo bảng 'orders_item':`)
+    writeSyncLog("ERROR", `[supabase.ensureOrderTable.js] Message: ${err.message}`)
 
-    if (err.detail) console.error("Detail:", err.detail);
-    if (err.position) console.error("Position:", err.position);
+    if (err.detail) writeSyncLog("ERROR", `[supabase.ensureOrderTable.js] Detail: ${err.detail}`)
+    if (err.position) writeSyncLog("ERROR", `[supabase.ensureOrderTable.js] Position: ${err.position}`)
 
     throw err;
   }

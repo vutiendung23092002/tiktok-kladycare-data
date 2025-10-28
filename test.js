@@ -32,9 +32,7 @@ import { formatTikTokOrder } from "./src/utils/formatTikTokOrder.js";
       const orderDetails = await getOrderDetail(batchIds);
 
       if (Array.isArray(orderDetails) && orderDetails.length > 0) {
-        // Format từng order theo chuẩn
-        const formattedOrders = orderDetails.map((o) => formatTikTokOrder(o));
-        allOrdersDetail.push(...formattedOrders);
+        allOrdersDetail.push(...orderDetails);
       } else {
         console.log("Không đơn hàng nào trả về cho batch này");
       }
@@ -47,6 +45,8 @@ import { formatTikTokOrder } from "./src/utils/formatTikTokOrder.js";
     nextPageToken = res.next_page_token;
     page++;
   } while (nextPageToken);
+
+  console.log(allOrdersDetail[0]);
 
   console.log(`Hoàn tất! Tổng cộng ${allOrdersDetail.length} đơn hàng chi tiết đã format.`);
 

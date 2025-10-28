@@ -2,8 +2,9 @@ import axios from "axios";
 import { config } from "../config/env.config.js";
 import { generateTikTokSign } from "../utils/generateTikTokSign.js"
 import { vnTimeToUTCTimestampRaw, utcToVNTime } from "../utils/VNtimeToUTCTimestamp.js"
+import { writeSyncLog } from "../utils/writelog.js";
 
-export async function getListOrder(next_page_token) {
+export async function getListOrder(next_page_token, start_date, end_date) {
     const path = "/order/202309/orders/search";
     const appSecret = config.tiktok.app_secret;
     const accessToken = config.tiktok.access_token;
@@ -17,10 +18,8 @@ export async function getListOrder(next_page_token) {
         page_token: next_page_token,
     }
 
-    const start = vnTimeToUTCTimestampRaw("2025/10/25 00:00:00");
-    const end = vnTimeToUTCTimestampRaw("2025/10/27 23:59:59");
-
-    console.log(`Lấy từ ${start} đến ${end}`);
+    const start = vnTimeToUTCTimestampRaw(start_date);
+    const end = vnTimeToUTCTimestampRaw(end_date);
 
     const body = {
         create_time_ge: start,

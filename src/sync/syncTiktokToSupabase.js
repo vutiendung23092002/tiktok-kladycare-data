@@ -1,0 +1,149 @@
+import { logTokenStatus } from "../utils/tokenExpiration.js";
+import { writeSyncLog } from "../utils/writelog.js";
+
+import { getListOrder } from "../api/tiktok.order.js";
+import { getOrderDetail } from "../api/tiktok.order_detail.js";
+
+import { formatTikTokOrder, formatTikTokOrderItem } from "../utils/formatTikTokOrder.js";
+import { diffRecords } from "./syncDiff.js";
+
+import { ensureOrderTable } from "../services/supabase.ensureOrderTable.js";
+import { ensureOrderItemTable } from "../services/supabase.ensureOrderItemTable.js";
+import { selectOrdersByDate } from "../services/supabase.selectOrder.js";
+import { selectOrderItemsByDate } from "../services/supabase.selectOrderItem.js";
+import { upsertOrders } from "../services/supabase.upsertOrders.js";
+import { upsertOrderItems } from "../services/supabase.upsertOrderItems.js";
+
+import fs from "fs/promises";
+
+/**
+ * Đồng bộ dữ liệu từ TikTok → Supabase trong khoảng thời gian cụ thể
+ * @param {string} startDate - ví dụ "2025/10/23 00:00:00" (giờ VN)
+ * @param {string} endDate - ví dụ "2025/10/27 23:59:59" (giờ VN)
+ */
+export async function syncTiktokToSupabase(startDate, endDate) {
+    logTokenStatus();
+
+    await ensureOrderTable();
+    await ensureOrderItemTable();
+    console.log(`Bắt đầu sync TikTok → Supabase từ ${startDate} → ${endDate}`);
+
+    let allOrdersDetail = [];
+    let nextPageToken = null;
+    let page = 1;
+
+    // ==============================
+    // 1️. Lấy dữ liệu mới từ TikTok
+    // ==============================
+    console.log(`Đang lấy data từ ${startDate} đến ${endDate}`);
+    do {
+        const res = await getListOrder(nextPageToken, startDate, endDate);
+
+        if (!res || !res.orders) {
+            console.log("Không có dữ liệu trả về từ TikTok hoặc token hết hạn!");
+            break;
+        }
+
+        const ids = res.orders.map((o) => o.id).filter(Boolean);
+
+        // Lấy chi tiết đơn theo từng batch 50
+        const chunkSize = 50;
+        for (let i = 0; i < ids.length; i += chunkSize) {
+            const batchIds = ids.slice(i, i + chunkSize);
+            const orderDetails = await getOrderDetail(batchIds);
+
+            if (Array.isArray(orderDetails) && orderDetails.length > 0) {
+                allOrdersDetail.push(...orderDetails);
+            }
+
+            await new Promise((r) => setTimeout(r, 50)); // tránh rate limit
+        }
+
+        nextPageToken = res.next_page_token;
+        page++;
+    } while (nextPageToken);
+
+    console.log(` Đã lấy ${allOrdersDetail.length} đơn hàng từ TikTok.`);
+
+    // ==============================
+    // 2️. Format lại dữ liệu
+    // ==============================
+    const formattedOrders = allOrdersDetail.map(formatTikTokOrder);
+    const formattedOrderItems = allOrdersDetail.flatMap(formatTikTokOrderItem).filter(Boolean);
+
+    // Lưu JSON kết quả
+    // await fs.writeFile(
+    //     "./src/data/tiktokOrder.json",
+    //     JSON.stringify(formattedOrders, null, 2),
+    //     "utf-8"
+    // );
+
+    // await fs.writeFile(
+    //     "./src/data/tiktokOrderItem.json",
+    //     JSON.stringify(formattedOrderItems, null, 2),
+    //     "utf-8"
+    // );
+
+
+    // ==============================
+    // 3️. Lấy dữ liệu cũ từ Supabase
+    // ==============================
+    const oldOrders = await selectOrdersByDate(startDate, endDate);
+    const oldOrderItems = await selectOrderItemsByDate(startDate, endDate);
+
+    // Lưu JSON kết quả
+    // await fs.writeFile(
+    //     "./src/data/supabaseOrder.json",
+    //     JSON.stringify(oldOrders, null, 2),
+    //     "utf-8"
+    // );
+
+    // await fs.writeFile(
+    //     "./src/data/supabaseOrderItem.json",
+    //     JSON.stringify(oldOrderItems, null, 2),
+    //     "utf-8"
+    // );
+
+    // ==============================
+    // 4️. So sánh hash (diff)
+    // ==============================
+    const { toUpsert: ordersToUpsert } = diffRecords(formattedOrders, oldOrders, "order_id", "hash");
+    const { toUpsert: itemsToUpsert } = diffRecords(formattedOrderItems, oldOrderItems, "item_id", "hash");
+
+    // Lưu JSON kết quả
+    // await fs.writeFile(
+    //     "./src/data/toUpsertOrder.json",
+    //     JSON.stringify(ordersToUpsert, null, 2),
+    //     "utf-8"
+    // );
+
+    // await fs.writeFile(
+    //     "./src/data/toUpsertOrderItem.json",
+    //     JSON.stringify(itemsToUpsert, null, 2),
+    //     "utf-8"
+    // );
+
+    console.log(`
+    Diff kết quả:
+    Orders cần upsert: ${ordersToUpsert.length}
+    Items cần upsert: ${itemsToUpsert.length}
+        `);
+
+    // ==============================
+    // 5. Upsert lên Supabase
+    // ==============================
+    if (ordersToUpsert.length > 0) {
+        await upsertOrders(ordersToUpsert);
+    } else {
+        console.log("Không có order nào cần thêm hoặc update.");
+    }
+
+    if (itemsToUpsert.length > 0) {
+        await upsertOrderItems(itemsToUpsert);
+    } else {
+        console.log("Không có item nào cần thêm hoặc update.");
+    }
+
+    writeSyncLog("SUCCESS", `Đồng bộ thành công tiktok -> supabase`);
+
+}

@@ -1,59 +1,47 @@
 import { getOrderDetail } from "./src/api/tiktok.order_detail.js";
+import { getListOrder } from "./src/api/tiktok.order.js";
+import fs from "fs/promises";
 
 (async () => {
-    const orderIds = [
-        "580586316735939978",
-        "580586561911621008",
-        "580586819730375780",
-        "580587160767530097",
-        "580588156183480009",
-        "580588300617287306",
-        "580588335523988928",
-        "580588362841098157",
-        "580588313076270357",
-        "580588390250416045",
-        "580588314260964372",
-        "580588365312984866",
-        "580588392805991445",
-        "580588367266350537",
-        "580588505492719240",
-        "580588517180475343",
-        "580588505854215552",
-        "580588464635676255",
-        "580588509318251521",
-        "580588524978276184",
-        "580588553891644676",
-        "580588703742985522",
-        "580588672947815451",
-        "580588660518978595",
-        "580588635369146004",
-        "580588677245076930",
-        "580588716662556514",
-        "580588797261940349",
-        "580588826181469981",
-        "580588846651770669",
-        "580588821767554107",
-        "580588895022122165",
-        "580588938783392961",
-        "580588909295666569",
-        "580588928816023032",
-        "580588954061211261",
-        "580588958337173376",
-        "580589074093802541",
-        "580589023597004237",
-        "580589063003276604",
-        "580589024664520648",
-        "580589089147094037",
-        "580589217813399503",
-        "580589387519394972",
-        "580589415404242657",
-        "580589418650896157",
-        "580589404376695853",
-        "580589478574982216",
-        "580589509587470280",
-        "580589516871730221",
-    ];
+    let allOrdersDetail = [];
+    let nextPageToken = null;
+    let page = 1;
 
-    const details = await getOrderDetail(orderIds);
-    console.log("Chi tiết đơn:", JSON.stringify(details, null, 2));
+    do {
+        console.log(`Đang lấy trang ${page}...`);
+        const res = await getListOrder(nextPageToken);
+        // Nếu lỗi hoặc không có data thì dừng
+        if (!res || !res.orders) {
+            console.log("Không có dữ liệu trả về hoặc token sai, dừng lại.");
+            break;
+        }
+        const ids = res.orders.map((o) => o.id).filter(Boolean);
+
+        // Chia nhỏ danh sách ID thành 2 batch (mỗi batch 50 đơn)
+        const chunkSize = 50;
+        for (let i = 0; i < ids.length; i += chunkSize) {
+            const batchIds = ids.slice(i, i + chunkSize);
+
+            const orderDetails = await getOrderDetail(batchIds);
+
+            if (Array.isArray(orderDetails) && orderDetails.length > 0) {
+                allOrdersDetail.push(...orderDetails);
+            } else {
+                console.log("Không đơn hàng nào trả về cho batch này");
+            }
+
+            // tránh rate limit
+            await new Promise((r) => setTimeout(r, 100));
+        }
+
+        nextPageToken = res.next_page_token;
+        page++;
+        await new Promise((r) => setTimeout(r, 200));
+    } while (nextPageToken);
+
+    await fs.writeFile(
+        "./src/data/all_order_details_formatted.json",
+        JSON.stringify(allOrdersDetail, null, 2),
+        "utf-8"
+    );
 })();
