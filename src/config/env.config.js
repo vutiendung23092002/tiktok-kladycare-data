@@ -16,5 +16,11 @@ export const config = {
   },
   supabase: {
     database_url: process.env.DATABASE_URL,
-  }
+  },
+  lark: {
+    endpointLark_auth: process.env.LARK_API_DOMAIN_AUTH,
+    app_id: process.env.LARK_APP_ID,
+    app_secret: process.env.LARK_APP_SECRET,
+    base_id: process.env.BASE_ID,
+  },
 };

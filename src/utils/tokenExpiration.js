@@ -1,4 +1,5 @@
 import { writeSyncLog } from "./writelog.js";
+import { refreshTikTok_x_tts_access_token } from "../api/tiktok.auth.js"
 
 /**
  * Hàm lấy thời gian còn lại của token + thời gian hết hạn (giờ VN)
@@ -51,7 +52,7 @@ export function isTokenExpired(type = "access_token") {
     return remainingSeconds <= 0;
 }
 
-export function logTokenStatus() {
+export async function logTokenStatus() {
     try {
         const access = getTokenRemainingTime("access_token");
         const refresh = getTokenRemainingTime("refresh_token");
@@ -61,6 +62,7 @@ export function logTokenStatus() {
 
         if (isTokenExpired("access_token")) {
             writeSyncLog("ERROR","ACCESS_TOKEN tiktok đã hết hạn! Đang lấy lại access token tiktok");
+            await refreshTikTok_x_tts_access_token();
         } 
 
         if (isTokenExpired("refresh_token")) {

@@ -7,12 +7,7 @@ import { getOrderDetail } from "../api/tiktok.order_detail.js";
 import { formatTikTokOrder, formatTikTokOrderItem } from "../utils/formatTikTokOrder.js";
 import { diffRecords } from "./syncDiff.js";
 
-import { ensureOrderTable } from "../services/supabase.ensureOrderTable.js";
-import { ensureOrderItemTable } from "../services/supabase.ensureOrderItemTable.js";
-import { selectOrdersByDate } from "../services/supabase.selectOrder.js";
-import { selectOrderItemsByDate } from "../services/supabase.selectOrderItem.js";
-import { upsertOrders } from "../services/supabase.upsertOrders.js";
-import { upsertOrderItems } from "../services/supabase.upsertOrderItems.js";
+import { ensureOrderTable, ensureOrderItemTable, selectOrdersHashByDate, selectOrderItemsHashByDate, upsertOrders, upsertOrderItems } from "../services/supabase.service.js";
 
 import fs from "fs/promises";
 
@@ -22,7 +17,7 @@ import fs from "fs/promises";
  * @param {string} endDate - ví dụ "2025/10/27 23:59:59" (giờ VN)
  */
 export async function syncTiktokToSupabase(startDate, endDate) {
-    logTokenStatus();
+    await logTokenStatus();
 
     await ensureOrderTable();
     await ensureOrderItemTable();
@@ -37,6 +32,8 @@ export async function syncTiktokToSupabase(startDate, endDate) {
     // ==============================
     console.log(`Đang lấy data từ ${startDate} đến ${endDate}`);
     do {
+        console.log("Đang lấy data page ", nextPageToken);
+
         const res = await getListOrder(nextPageToken, startDate, endDate);
 
         if (!res || !res.orders) {
@@ -88,8 +85,8 @@ export async function syncTiktokToSupabase(startDate, endDate) {
     // ==============================
     // 3️. Lấy dữ liệu cũ từ Supabase
     // ==============================
-    const oldOrders = await selectOrdersByDate(startDate, endDate);
-    const oldOrderItems = await selectOrderItemsByDate(startDate, endDate);
+    const oldOrders = await selectOrdersHashByDate(startDate, endDate);
+    const oldOrderItems = await selectOrderItemsHashByDate(startDate, endDate);
 
     // Lưu JSON kết quả
     // await fs.writeFile(

@@ -16,7 +16,7 @@ function sleep(ms) {
             console.time("Thời gian đồng bộ");
             await syncTiktokToSupabase(startDate, endDate);
             console.timeEnd("Thời gian đồng bộ");
-            writeSyncLog("SUCCESS", "Đồng bộ hoàn tất, chờ 10 phút rồi chạy lại...");
+            writeSyncLog("SUCCESS", "Đồng bộ hoàn tất!");
         } catch (err) {
             writeSyncLog("ERROR", `[main.js] Lỗi đồng bộ: ${err.message}`);
         }

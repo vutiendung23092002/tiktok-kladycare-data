@@ -1,6 +1,7 @@
-import postgres from 'postgres'
+import postgres from 'postgres';
+import { config  } from "../config/env.config.js";
 
-const connectionString = process.env.DATABASE_URL
-const sql = postgres(connectionString)
+const connectionString = config.supabase.database_url;
+const sql = postgres(connectionString);
 
-export default sql
+export default sql;

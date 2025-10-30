@@ -12,5 +12,4 @@ logs/
 *.log
 
 # Ignore local data x
-src/data/
-*.json
+src/data/*.json

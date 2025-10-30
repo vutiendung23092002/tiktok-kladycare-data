@@ -3,13 +3,15 @@ import { getListOrder } from "./src/api/tiktok.order.js";
 import fs from "fs/promises";
 
 (async () => {
+    const startDate = "2025/10/25 00:00:00";
+    const endDate = "2025/10/31 23:59:59";
     let allOrdersDetail = [];
     let nextPageToken = null;
     let page = 1;
 
     do {
         console.log(`Đang lấy trang ${page}...`);
-        const res = await getListOrder(nextPageToken);
+        const res = await getListOrder(nextPageToken, startDate, endDate);
         // Nếu lỗi hoặc không có data thì dừng
         if (!res || !res.orders) {
             console.log("Không có dữ liệu trả về hoặc token sai, dừng lại.");
@@ -40,7 +42,7 @@ import fs from "fs/promises";
     } while (nextPageToken);
 
     await fs.writeFile(
-        "./src/data/all_order_details_formatted.json",
+        "./src/data/all_order_details.json",
         JSON.stringify(allOrdersDetail, null, 2),
         "utf-8"
     );

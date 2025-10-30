@@ -66,6 +66,8 @@ export async function refreshTikTok_x_tts_access_token() {
             REFRESH_TOKEN_EXPIRE_IN: data.refresh_token_expire_in,
         });
 
+        dotenv.config({ override: true });
+
         return data;
     } catch (err) {
         writeSyncLog("ERROR", `[TikTok.auth.js] Lỗi lấy token: ${err.response?.data || err.message}`)
@@ -89,8 +91,8 @@ export async function getAuthorizedShops() {
   const sign = generateTikTokSignForGetAuthorizedShops({ appSecret, path, params, body });
   params.sign = sign;
 
-  console.log("🧩 Params gửi:", params);
-  console.log("🔏 Sign:", sign);
+  console.log("Params gửi:", params);
+  console.log("Sign:", sign);
 
   const headers = {
     "x-tts-access-token": accessToken,
@@ -101,9 +103,9 @@ export async function getAuthorizedShops() {
 
   try {
     const res = await axios.get(url, { headers, params });
-    console.log("✅ Response:", res.data.data);
+    console.log("Response:", res.data.data);
   } catch (err) {
-    console.log("❌ Axios Error:");
+    console.log("Axios Error:");
     if (err.response) {
       console.log("Status:", err.response.status);
       console.log("Data:", JSON.stringify(err.response.data, null, 2));

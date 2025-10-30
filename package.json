@@ -1,0 +1,23 @@
+{
+  "name": "tiktokkladycare",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@larksuiteoapi/node-sdk": "^1.55.0",
+    "@supabase/supabase-js": "^2.76.1",
+    "axios": "^1.12.2",
+    "body-parser": "^2.2.0",
+    "crypto": "^1.0.1",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "postgres": "^3.4.7"
+  }
+}
