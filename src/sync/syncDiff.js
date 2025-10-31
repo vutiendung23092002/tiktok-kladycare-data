@@ -39,5 +39,5 @@ export function diffRecords(newRecords, oldRecords, idKey, hashKey) {
   - Thêm mới: ${toInsert.length}
   - Cập nhật: ${toUpdate.length}`);
 
-  return { toUpsert };
+  return { toUpsert,toInsert,toUpdate };
 }

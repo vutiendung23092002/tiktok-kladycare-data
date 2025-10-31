@@ -22,3 +22,10 @@ getTikTok_x_tts_access_token(auth_code) để lấy lại token
 
 ** Chú ý khi thay đổi scope của app cũng cần cấp quyền lại và chạy lại RE_AUTHORIZE.js để cập nhật lại token theo auth code mới
 
+
+
+
+// const fields = Object.entries(ORDER_FIELD_MAP).map(([key, label]) => ({ 
+    // field_name: label, 
+    // type: 2, 
+    // }));
