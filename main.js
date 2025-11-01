@@ -56,10 +56,11 @@ async function startSyncOrderItemsSupabaseToLark(startDate, endDate, baseId, tab
 
 (async () => {
   const BASE_ID = config.lark.base_id;
+
   const startDate = "2025/10/01 00:00:00";
-  const endDate = "2025/10/31 23:59:59";
-  const TABLE_ORDER_NAME = "Tiktok Orders (T10)";
-  const TABLE_ORDER_ITEMS_NAME = "Tintok Order Items (T10)";
+  const endDate = "2025/12/31 23:59:59";
+  const TABLE_ORDER_NAME = "Tiktok Orders (T10-T12)";
+  const TABLE_ORDER_ITEMS_NAME = "Tiktok Order Items (T10-T12)";
 
   console.log("Bắt đầu tiến trình đồng bộ");
 

@@ -68,57 +68,17 @@ export async function syncTiktokToSupabase(startDate, endDate) {
     const formattedOrders = allOrdersDetail.map(formatTikTokOrder);
     const formattedOrderItems = allOrdersDetail.flatMap(formatTikTokOrderItem).filter(Boolean);
 
-    // Lưu JSON kết quả
-    // await fs.writeFile(
-    //     "./src/data/tiktokOrder.json",
-    //     JSON.stringify(formattedOrders, null, 2),
-    //     "utf-8"
-    // );
-
-    // await fs.writeFile(
-    //     "./src/data/tiktokOrderItem.json",
-    //     JSON.stringify(formattedOrderItems, null, 2),
-    //     "utf-8"
-    // );
-
-
     // ==============================
     // 3️. Lấy dữ liệu cũ từ Supabase
     // ==============================
     const oldOrders = await selectOrdersHashByDate(startDate, endDate);
     const oldOrderItems = await selectOrderItemsHashByDate(startDate, endDate);
 
-    // Lưu JSON kết quả
-    // await fs.writeFile(
-    //     "./src/data/supabaseOrder.json",
-    //     JSON.stringify(oldOrders, null, 2),
-    //     "utf-8"
-    // );
-
-    // await fs.writeFile(
-    //     "./src/data/supabaseOrderItem.json",
-    //     JSON.stringify(oldOrderItems, null, 2),
-    //     "utf-8"
-    // );
-
     // ==============================
     // 4️. So sánh hash (diff)
     // ==============================
     const { toUpsert: ordersToUpsert } = diffRecords(formattedOrders, oldOrders, "order_id", "hash");
     const { toUpsert: itemsToUpsert } = diffRecords(formattedOrderItems, oldOrderItems, "item_id", "hash");
-
-    // Lưu JSON kết quả
-    // await fs.writeFile(
-    //     "./src/data/toUpsertOrder.json",
-    //     JSON.stringify(ordersToUpsert, null, 2),
-    //     "utf-8"
-    // );
-
-    // await fs.writeFile(
-    //     "./src/data/toUpsertOrderItem.json",
-    //     JSON.stringify(itemsToUpsert, null, 2),
-    //     "utf-8"
-    // );
 
     console.log(`
     Diff kết quả:

@@ -23,4 +23,11 @@ export const config = {
     app_secret: process.env.LARK_APP_SECRET,
     base_id: process.env.BASE_ID,
   },
+  kiotviet: {
+    clientId: process.env.KIOTVIET_CLIENT_ID,
+    clientSecret: process.env.KIOTVIET_CLIENT_SECRET,
+    endpointKiot_auth: process.env.KIOTVIET_API_DOMAIN_AUTH,
+    endpointKiot_public: process.env.KIOTVIET_API_DOMAIN_PUBLIC,
+    retailer: process.env.KIOTVIET_RETAILER,
+  },
 };

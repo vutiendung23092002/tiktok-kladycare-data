@@ -1,32 +1,26 @@
-import axios from "axios";
-import { config } from "../config/env.config.js";
-import { generateTikTokSign } from "../utils/generateTikTokSign.js"
-import { vnTimeToUTCTimestampRaw, utcToVNTime } from "../utils/VNtimeToUTCTimestamp.js"
-import { writeSyncLog } from "../utils/writelog.js";
 
-export async function getListOrder(next_page_token, start_date, end_date) {
-    const path = "/order/202309/orders/search";
+
+export async function getStatements(next_page_token, start_date, end_date) {
+    const path = "/finance/202309/statements";
     const appSecret = config.tiktok.app_secret;
     const accessToken = config.tiktok.access_token;
     const shopCipher = config.tiktok.cipher;
 
-    const params = {
-        app_key: config.tiktok.app_key,
-        timestamp: Math.floor(Date.now() / 1000),
-        page_size: 100,
-        shop_cipher: shopCipher,
-        page_token: next_page_token,
-    }
-
     const start = vnTimeToUTCTimestampRaw(start_date);
     const end = vnTimeToUTCTimestampRaw(end_date);
 
-    const body = {
-        create_time_ge: start,
-        create_time_lt: end,
-    };
+    const params = {
+        app_key: config.tiktok.app_key,
+        sort_field: "statement_time",
+        timestamp: Math.floor(Date.now() / 1000),
+        shop_cipher: shopCipher,
+        statement_time_ge: start,
+        statement_time_lt: end,
+        page_size: 200,
+        page_token: next_page_token,
+    }
 
-    const sign = generateTikTokSign({ appSecret, path, params, body });
+    const sign = generateTikTokSignForGetAuthorizedShops({ appSecret, path, params, body });
     params.sign = sign;
 
     const headers = {
@@ -37,7 +31,7 @@ export async function getListOrder(next_page_token, start_date, end_date) {
     const url = `${config.tiktok.open_endpoint.replace(/\/$/, "")}${path}`;
 
     try {
-        const res = await axios.post(url, body, { headers, params });
+        const res = await axios.get(url, { headers, params });
         return res.data.data;
     } catch (err) {
         console.log("Axios Error:");

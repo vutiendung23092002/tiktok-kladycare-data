@@ -19,7 +19,6 @@ import { diffRecords } from "./syncDiff.js";
  * @param {string} endDate - Ngày kết thúc (YYYY/MM/DD HH:mm:ss)
  */
 export async function syncTiktokOrdersToLarkBase(client, baseId, tableName, startDate, endDate) {
-    console.time("Thời gian đồng bộ");
 
     console.log("Lấy dữ liệu đơn hàng từ Supabase...");
     const supabaseRecords = await selectOrdersByDate(startDate, endDate);
@@ -96,8 +95,6 @@ export async function syncTiktokOrdersToLarkBase(client, baseId, tableName, star
         toCreate.length ? createLarkRecords(client, baseId, tableId, toCreate) : Promise.resolve(),
         toUpdate.length ? updateLarkRecords(client, baseId, tableId, toUpdate) : Promise.resolve(),
     ]);
-
-    console.timeEnd("Thời gian đồng bộ");
 }
 
 
@@ -110,10 +107,16 @@ export async function syncTiktokOrdersToLarkBase(client, baseId, tableName, star
  * @param {string} endDate - Ngày kết thúc (YYYY/MM/DD HH:mm:ss)
  */
 export async function syncTiktokOrderItemsToLarkBase(client, baseId, tableName, startDate, endDate) {
-    console.time("Thời gian đồng bộ");
 
     console.log("Lấy dữ liệu đơn hàng từ Supabase...");
     const supabaseRecords = await selectOrderItemsByDate(startDate, endDate);
+
+    // await fs.writeFile(
+    //     "./src/data/supabaseOrderItem.json",
+    //     JSON.stringify(supabaseRecords, null, 2),
+    //     "utf-8"
+    // );
+
     const orderItems = supabaseRecords || [];
 
     console.log(`Tổng số đơn hàng lấy từ Supabase: ${orderItems.length}`);
@@ -189,6 +192,4 @@ export async function syncTiktokOrderItemsToLarkBase(client, baseId, tableName, 
         toCreate.length ? createLarkRecords(client, baseId, tableId, toCreate) : Promise.resolve(),
         toUpdate.length ? updateLarkRecords(client, baseId, tableId, toUpdate) : Promise.resolve(),
     ]);
-
-    console.timeEnd("Thời gian đồng bộ");
 }
